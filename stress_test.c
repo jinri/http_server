@@ -59,10 +59,12 @@ bool read_once(int sockfd,char * buffer,int len)
 	bytes_read == recv(sockfd,buffer,len,0);
 	if(bytes_read == -1)
 	{
+		printf("read=-1 false\n");
 		return false;
 	}
 	else if(bytes_read == 0)
 	{
+		printf("read=0 false\n");
 		return false;
 	}
 	printf("read in %d bytes from socket %d with content:%s\n",bytes_read,sockfd,buffer);
@@ -80,7 +82,7 @@ void start_conn(int epoll_fd,int num,const char * ip,int port)
 
 	for(int i = 0;i < num;++i)
 	{
-		sleep(1);
+		sleep(0.2);
 		int sockfd = socket(PF_INET,SOCK_STREAM,0);
 		printf("create 1 sock\n");
 		if(sockfd < 0)
@@ -107,7 +109,7 @@ int main(int argc,char * argv[])
 	int epoll_fd = epoll_create(100);
 	start_conn(epoll_fd,atoi(argv[3]),argv[1],atoi(argv[2]));
 	epoll_event events[10000];
-	char buffer[2048];
+	char buffer[1024];
 	while(1)
 	{
 		int fds = epoll_wait(epoll_fd,events,10000,2000);
@@ -116,7 +118,7 @@ int main(int argc,char * argv[])
 			int sockfd = events[i].data.fd;
 			if(events[i].events & EPOLLIN)
 			{
-				if(! read_once(sockfd,buffer,2048))
+				if(! read_once(sockfd,buffer,1024))
 				{
 					close_conn(epoll_fd,sockfd);
 				}

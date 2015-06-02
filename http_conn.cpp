@@ -27,7 +27,7 @@ void addfd(int epollfd,int fd,bool one_shot)
 {
 	epoll_event event;
 	event.data.fd  = fd;
-	event.events = EPOLLIN | EPOLLET | EPOLLRDHUP;
+	event.events = EPOLLIN | EPOLLET | EPOLLRDHUP; //EPOLLIN  注册读事件，EPOLLET 边沿触发，EPOLLRDHUP 在socket上接收到对方关闭连接　　　　　　　　　　　　　　　　　　　　　　　　　　 的请求之后触发
 	if( one_shot)
 	{
 		event.events |= EPOLLONESHOT;
@@ -89,7 +89,7 @@ void http_conn::init(int sockfd ,const sockaddr_in & addr)
 	m_sockfd  = sockfd;
 	m_address = addr;
 	int reuse = 1;
-	setsockopt(m_sockfd,SOL_SOCKET,SO_REUSEADDR,&reuse,sizeof(reuse));
+	setsockopt(m_sockfd,SOL_SOCKET,SO_REUSEADDR,&reuse,sizeof(reuse)); //SO_REUSEADDR ,socket选项名字，重用本地地址
 	addfd(m_epollfd,sockfd,true);
 	m_user_count++;
 

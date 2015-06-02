@@ -21,8 +21,9 @@
 extern int addfd(int epollfd,int fd,bool one_shot);
 extern int removefd(int epollfd,int fd);
 
-void addsig(int sig,void(handler)(int),bool restart = true)
+void addsig(int sig,void(handler)(int) )
 {
+   bool restart = true;
    struct sigaction sa;
    memset(&sa,'\0',sizeof(sa));
    sa.sa_handler = handler;
@@ -34,10 +35,10 @@ void addsig(int sig,void(handler)(int),bool restart = true)
    assert(sigaction(sig,&sa,NULL) != -1);
 }
 
-void show_error(int connfd,const char* info)
+void show_error(int connfd,const char* information)
 {
-   printf("%s", info);
-   send(connfd,info,strlen(info),0);
+   printf("%s", information);
+   send(connfd,information,strlen(information),0);
    close(connfd);
 }
 
@@ -51,14 +52,14 @@ int main(int argc, char* argv[])
    const  char* ip = argv[1];
    int port = atoi(argv[2]);
 
-   addsig(SIGPIPE,SIG_IGN);
-
+   addsig(SIGPIPE,SIG_IGN);//SIGPIPE 信号：往读端被关闭的管道或者socket连接中写数据
+                           //SIG_IGN :信号的处理方式，表示忽略目标信号
    threadpool<http_conn>* pool = NULL;
    try
    {
-       pool = new threadpool<http_conn>;
+       pool = new threadpool<http_conn>; //模板在这的作用？
    }
-   catch(...)
+   catch(...)                   //能捕获多种数据类型的异常对象
    {
       return 1;
    }
@@ -70,15 +71,15 @@ int main(int argc, char* argv[])
    int  listenfd = socket(PF_INET,SOCK_STREAM,0);
    assert(listenfd >= 0);
    struct  linger tmp = {1,0};
-   setsockopt(listenfd, SOL_SOCKET,SO_LINGER,&tmp,sizeof(tmp));
-
+   setsockopt(listenfd, SOL_SOCKET,SO_LINGER,&tmp,sizeof(tmp));// SOL_SOCKET 通用socket选项
+                                                               // SO_LINGER 若有数据发送，则延迟关闭
 
    int  ret=0;
    struct sockaddr_in address;
    bzero(&address, sizeof(address));
    address.sin_family = AF_INET;
    inet_pton(AF_INET,ip,&address.sin_addr);
-   address.sin_port = htons(port);
+   address.sin_port = htons(port);                             //主机类型转化为网络类型
 
    ret =bind( listenfd, (struct sockaddr*)&address,sizeof(address));
    assert(ret >= 0);
@@ -86,8 +87,8 @@ int main(int argc, char* argv[])
    ret = listen(listenfd,5);
    assert(ret >= 0);
 
-   epoll_event events[MAX_EVENT_NUMBER];
-   int epollfd = epoll_create(5);
+   epoll_event events[MAX_EVENT_NUMBER];                      //　epoll内核事件表
+   int epollfd = epoll_create(5);                             // 创建一个文件描述符，标识这个内核事件表
    assert(epollfd != -1);
    addfd(epollfd,listenfd,false);
    http_conn::m_epollfd = epollfd;
