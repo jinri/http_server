@@ -13,8 +13,9 @@ const char * error_404_form  = "Your requested file was not found on this server
 const char * error_500_title = "Internal Error";
 const char * error_500_form  = "There was an unusual problem serving the requested file.\n";
 
-const char * doc_root        = "/var/www/html";
+const char * doc_root        = "/home/gjf/http_project/"; 
 
+extern int errno;
 int setnonblocking(int fd)
 {
 	int old_option = fcntl(fd,F_GETFL);
@@ -311,10 +312,13 @@ http_conn::HTTP_CODE http_conn::process_read()
 http_conn::HTTP_CODE http_conn::do_request()
 	{
       strcpy(m_real_file,doc_root);
+	  printf("-------%s\n",m_real_file);
 	  int len = strlen(doc_root);
 	  strncpy(m_real_file + len, m_url, FILENAME_LEN -len - 1);
+	  printf("-------%s\n",m_url);
 	  if(stat(m_real_file, &m_file_stat) < 0)
 	  {
+		printf("%s\n",strerror(errno));
 	          return  NO_RESOURCE;
 	  }
 	  if(S_ISDIR(m_file_stat.st_mode & S_IROTH))
